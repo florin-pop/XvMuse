@@ -19,7 +19,6 @@ public protocol XvMuseDelegate:class {
     //didReceiveUpdate from sensor
     //didReceive object
     
-    func didReceiveUpdate(from eeg:XvMuseEEG)
     func didReceive(eegPacket:XvMuseEEGPacket)
     
     func didReceiveUpdate(from ppg:XvMusePPG)
@@ -36,7 +35,7 @@ public protocol XvMuseDelegate:class {
     func museDidConnect()
     func museDidDisconnect()
     func museLostConnection()
-    
+    func didFindNearby(museID: String)
 }
 
 //MARK: - STRUCTS -
@@ -96,7 +95,6 @@ public struct XvMuseBattery {
 
 
 public class XvMuse:MuseBluetoothObserver {
-    
     //MARK: - VARS -
     
     //MARK: Public
@@ -173,7 +171,7 @@ public class XvMuse:MuseBluetoothObserver {
             
             // local func to make EEG packet from the above variables
             
-            func _makeEEGPacket(i:Int) -> XvMuseEEGPacket {
+            func _makeEEGPacket(i:Int) {
                 
                 let packet:XvMuseEEGPacket = XvMuseEEGPacket(
                     packetIndex: packetIndex,
@@ -182,8 +180,6 @@ public class XvMuse:MuseBluetoothObserver {
                     samples: _parser.getEEGSamples(from: bytes))
                 
                 delegate?.didReceive(eegPacket: packet) //send to observer in case someone wants to do their own FFT processing
-                
-                return packet // return assembled packet
             }
             
             // local func to make PPG packet from the above variables
@@ -215,16 +211,14 @@ public class XvMuse:MuseBluetoothObserver {
                 //MARK: EEG
                 //parse the incoming data through the parser, which includes FFT. Returned value is an FFTResult, which updates the XvMuseEEG object
             case XvMuseConstants.CHAR_TP10:
-                 _eeg.update(with: _fft.process(eegPacket: _makeEEGPacket(i: 0)))
+                _makeEEGPacket(i: 0)
             case XvMuseConstants.CHAR_AF8:
-                 _eeg.update(with: _fft.process(eegPacket: _makeEEGPacket(i: 1)))
+                _makeEEGPacket(i: 1)
             case XvMuseConstants.CHAR_TP9:
-                 _eeg.update(with: _fft.process(eegPacket: _makeEEGPacket(i: 2)))
+                _makeEEGPacket(i: 2)
             case XvMuseConstants.CHAR_AF7:
-                 _eeg.update(with: _fft.process(eegPacket: _makeEEGPacket(i: 3)))
-                 
-                 //only broadcast the XvMuseEEG object once per cycle, giving each sensor the chance to input its new sensor data
-                 delegate?.didReceiveUpdate(from: _eeg)
+                _makeEEGPacket(i: 3)
+                
                 
                 //MARK: PPG
             case XvMuseConstants.CHAR_PPG1:
@@ -352,5 +346,9 @@ public class XvMuse:MuseBluetoothObserver {
     
     public func didLoseConnection() {
         delegate?.museLostConnection()
+    }
+    
+    public func didFindNearby(museID: String) {
+        delegate?.didFindNearby(museID: museID)
     }
 }

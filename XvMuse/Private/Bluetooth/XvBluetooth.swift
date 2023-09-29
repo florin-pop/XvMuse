@@ -83,7 +83,10 @@ public class XvBluetooth {
         )
         
         listeners.append(listener)
-        
+    }
+    
+    public func removeAllListeners() {
+        listeners.removeAll()
     }
     
     public func connect(){
