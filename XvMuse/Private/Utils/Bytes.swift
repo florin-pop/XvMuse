@@ -19,8 +19,7 @@ public class Bytes {
     }
     
     public class func getUInt16(fromUInt8:UInt8) -> UInt16 {
-        
-        return UInt16(fromUInt8)
+        return constructUInt16(fromUInt8Pair: [UInt8(0), fromUInt8])
     }
     
     //MARK: - Constructing new bytes or byte arrays -
@@ -88,7 +87,7 @@ public class Bytes {
     
     public class func constructUInt16(fromUInt8Pair:[UInt8]) -> UInt16 {
         
-        return UInt16(fromUInt8Pair[0]) << 8 | UInt16(fromUInt8Pair[1])
+        return try! UInt16(fromUInt8Pair[0]) << 8 | UInt16(fromUInt8Pair[1])
     }
     
     public class func constructUInt16Array(fromUInt8Array:[UInt8], packetTotal:Int) -> [UInt16] {
